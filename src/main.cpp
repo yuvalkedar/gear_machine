@@ -32,6 +32,7 @@
 #define LED_BRIGHTNESS (200)
 #define WINNING_FX_TIME (1500)  //NOTICE: make sure the number isn't too big. User might start a new game before the effect ends.
 #define LEVEL_FX_TIME (50)
+#define WINNING_SENSOR_PIN (7)  // winning switch pin in the RPi (GPIO12)
 
 Adafruit_NeoPixel strip(NUM_LEDS, LED_DATA_PIN, NEO_GRB + NEO_KHZ800);
 
@@ -43,8 +44,6 @@ Timer winning_timer;
 int8_t score = 0;
 uint8_t last_score = 0;
 uint8_t level[] = {0, 28, 48, 60, 64};  //levels 0 to 4
-uint32_t last_update;
-// uint8_t led_counter = 0;
 
 void level_up(uint8_t wait, uint8_t led_num) {
     uint8_t start_point;
@@ -56,24 +55,23 @@ void level_up(uint8_t wait, uint8_t led_num) {
     for (uint8_t i = start_point; i < led_num; i++) {
         strip.setPixelColor(i, strip.Color(0, 0, 255));
         strip.show();
-        delay(wait);
-        //asdasf
+        delay(wait);  //TODO: change it to timer
     }
 }
 
 void level_down(uint8_t wait, uint8_t led_num) {  //clear prev level's frame and do the opposite direction effect with red color
     uint8_t start_point;
-    if (led_num == level[0]) start_point = 27;  //down from level 1 to 0
-    if (led_num == level[1]) start_point = 47;  //down from level 2 to 1
-    if (led_num == level[2]) start_point = 59;  //down from level 3 to 2
-    if (led_num == level[3]) start_point = 63;  //...
+    if (led_num == level[0]) start_point = 28;  //down from level 1 to 0
+    if (led_num == level[1]) start_point = 48;  //down from level 2 to 1
+    if (led_num == level[2]) start_point = 60;  //down from level 3 to 2
+    if (led_num == level[3]) start_point = 64;  //...
 
-    for (uint8_t i = start_point; i >= led_num; i--) {
+    for (int8_t i = start_point - 1; i >= led_num; i--) {
         strip.setPixelColor(i, strip.Color(255, 0, 0));
         strip.show();
         delay(wait);  //TODO: change it to timer
     }
-    for (uint8_t i = start_point; i >= led_num; i--) {
+    for (int8_t i = start_point - 1; i >= led_num; i--) {
         strip.setPixelColor(i, strip.Color(0, 0, 0));
         strip.show();
     }
@@ -94,6 +92,7 @@ void reset_game() {
     strip.show();
     score = 0;
     last_score = 4;
+    digitalWrite(WINNING_SENSOR_PIN, LOW);
 }
 
 void setup() {
@@ -101,6 +100,8 @@ void setup() {
     pinMode(LED_DATA_PIN, OUTPUT);
     pinMode(BLUE_BTN_PIN, INPUT);
     pinMode(RED_BTN_PIN, INPUT);
+    pinMode(WINNING_SENSOR_PIN, INPUT);
+    digitalWrite(WINNING_SENSOR_PIN, LOW);
 
     plus_btn.begin();
     minus_btn.begin();
@@ -112,8 +113,6 @@ void setup() {
     strip.show();  // Turn OFF all pixels
     strip.setBrightness(LED_BRIGHTNESS);
 
-    Serial.println(F("Press 'p' to add score and 'm' to reduce score."));
-
     Serial.println(F(
         "_______________________________\n"
         "\n"
@@ -121,8 +120,6 @@ void setup() {
         "_______________________________\n"
         "\n"
         "Made by KD Technology\n"
-        "\n"
-        "Press 'p' to add score and 'm' to reduce score.\n"
         "\n"));
 }
 
@@ -142,8 +139,7 @@ void loop() {
 
     switch (score) {
         case 0:
-            if (last_score == 1) level_down(50, level[0]);  //FIXME: something is wrong here. probably gets below 0.
-            // FIXME: I should make an independent function for it.
+            if (last_score == 1) level_down(50, level[0]);
             last_score = 0;
             break;
         case 1:
@@ -166,6 +162,7 @@ void loop() {
         case 4:
             winning_timer.start();
             winning();
+            digitalWrite(WINNING_SENSOR_PIN, HIGH);
             break;
     }
 

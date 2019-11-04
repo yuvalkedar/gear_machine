@@ -32,12 +32,16 @@
 #define LED_BRIGHTNESS (200)
 #define WINNING_FX_TIME (1500)  //NOTICE: make sure the number isn't too big. User might start a new game before the effect ends.
 #define LEVEL_FX_TIME (50)
-#define WINNING_SENSOR_PIN (7)  // winning switch pin in the RPi (GPIO12)
+#define WINNING_SENSOR_PIN (7)   // winning switch pin in the RPi (GPIO12)
+#define LIMIT_SWITCH_2_PIN (12)  // limit switch r/l pin in the RPi (GPIO20)
+#define LIMIT_SWITCH_1_PIN (13)  // limit switch f/b pin in the RPi (GPIO16)
 
 Adafruit_NeoPixel strip(NUM_LEDS, LED_DATA_PIN, NEO_GRB + NEO_KHZ800);
 
 Button plus_btn(BLUE_BTN_PIN);
 Button minus_btn(RED_BTN_PIN);
+Button limit1_btn(LIMIT_SWITCH_1_PIN);
+Button limit2_btn(LIMIT_SWITCH_2_PIN);
 
 Timer winning_timer;
 
@@ -83,7 +87,25 @@ void winning() {  // Rainbow cycle along whole strip.
             int pixelHue = firstPixelHue + (i * 65536L / strip.numPixels());
             strip.setPixelColor(i, strip.gamma32(strip.ColorHSV(pixelHue)));
         }
-        strip.show();  // Update strip with new contents
+        strip.show();
+    }
+}
+
+void no_game() {  //explanation effect
+
+    for (uint8_t j = 0; j < 4; j++) {
+        for (uint8_t i = level[j]; i < level[j++]; i++) {
+            strip.setPixelColor(i, strip.Color(0, 0, 255));
+            strip.show();
+            delay(50);  //TODO: change it to timer
+        }
+    }
+    for (uint8_t j = 4; j > 0; j--) {
+        for (int8_t i = level[j] - 1; i >= level[j--]; i--) {
+            strip.setPixelColor(i, strip.Color(255, 0, 0));
+            strip.show();
+            delay(50);  //TODO: change it to timer
+        }
     }
 }
 
@@ -100,11 +122,15 @@ void setup() {
     pinMode(LED_DATA_PIN, OUTPUT);
     pinMode(BLUE_BTN_PIN, INPUT);
     pinMode(RED_BTN_PIN, INPUT);
+    pinMode(LIMIT_SWITCH_2_PIN, INPUT);
+    pinMode(LIMIT_SWITCH_1_PIN, INPUT);
     pinMode(WINNING_SENSOR_PIN, INPUT);
     digitalWrite(WINNING_SENSOR_PIN, LOW);
 
     plus_btn.begin();
     minus_btn.begin();
+    limit1_btn.begin();
+    limit2_btn.begin();
 
     winning_timer.setCallback(reset_game);
     winning_timer.setTimeout(WINNING_FX_TIME);
@@ -124,6 +150,10 @@ void setup() {
 }
 
 void loop() {
+    if (limit1_btn.pressed() && limit2_btn.pressed()) {
+        no_game();
+    }
+
     if (plus_btn.pressed()) {
         score++;
         if (score >= 4) {

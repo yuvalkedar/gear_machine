@@ -30,8 +30,7 @@
 #define RED_BTN_PIN (4)
 #define NUM_LEDS (64)
 #define LED_BRIGHTNESS (200)
-#define WINNING_FX_TIME (2000)  //NOTICE: make sure the number isn't too big. User might start a new game before the effect ends.
-#define NO_GAME_FX_TIME (250)
+#define WINNING_FX_TIME (2000)   //NOTICE: make sure the number isn't too big. User might start a new game before the effect ends.
 #define WINNING_SENSOR_PIN (7)   // winning switch pin in the RPi (GPIO12)
 #define START_GAME_PIN (8)       // coin switch pin in the RPi (GPIO25)
 #define LIMIT_SWITCH_2_PIN (9)   // limit switch r/l pin in the RPi (GPIO20)
@@ -44,7 +43,6 @@ Button minus_btn(RED_BTN_PIN);
 Button coin_btn(START_GAME_PIN);
 
 Timer reset_timer;
-Timer no_game_timer;
 
 int8_t score = 0;
 uint8_t last_score = 0;
@@ -156,9 +154,6 @@ void setup() {
 
     reset_timer.setCallback(reset_game);
     reset_timer.setTimeout(WINNING_FX_TIME);
-
-    no_game_timer.setCallback(reset_game);
-    no_game_timer.setInterval(NO_GAME_FX_TIME);
 
     strip.begin();
     strip.show();  // Turn OFF all pixels

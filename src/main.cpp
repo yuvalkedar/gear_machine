@@ -115,7 +115,7 @@ void no_game() {  //explanation effect
                 strip.show();
             }
         }
-        delay_millis(250);
+        delay_millis(500);
     }
 
     for (uint8_t j = 4; j > 0; j--) {
@@ -123,7 +123,7 @@ void no_game() {  //explanation effect
             strip.setPixelColor(i, strip.Color(0, 0, 0));
             strip.show();
         }
-        delay_millis(250);
+        delay_millis(500);
     }
 }
 

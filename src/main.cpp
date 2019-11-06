@@ -111,7 +111,7 @@ void no_game() {  //explanation effect
         }
         if (j == 3) {
             for (uint8_t i = level[j]; i < level[j + 1]; i++) {
-                strip.setPixelColor(i, strip.Color(0, 255, 0));
+                strip.setPixelColor(i, strip.Color(255, 0, 255));
                 strip.show();
             }
         }

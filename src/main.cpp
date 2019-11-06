@@ -124,17 +124,61 @@ void reset_game() {
     digitalWrite(WINNING_SENSOR_PIN, LOW);
 }
 
-void start_game() {
-    strip.clear();
-    strip.show();
-}
-
 void winning_check() {
     if (score == 4) {
         digitalWrite(WINNING_SENSOR_PIN, HIGH);
         // Serial.println("YOU WON");
     } else
         digitalWrite(WINNING_SENSOR_PIN, LOW);
+}
+
+void update_score() {
+    if (plus_btn.pressed()) {
+        score++;
+        if (score >= 4) {
+            score = 4;
+        }
+    }
+    if (minus_btn.pressed()) {
+        score--;
+        if (score <= 0) {
+            score = 0;
+        }
+    }
+
+    switch (score) {
+        case 0:
+            if (last_score == 1) level_down(50, level[0]);
+            last_score = 0;
+            break;
+        case 1:
+            if (last_score == 0) level_up(level[1]);        // if last_score was 0 make the blue effect because level is up
+            if (last_score == 2) level_down(50, level[1]);  // if last_score was 2 make the red effect because level is down
+            last_score = 1;
+            break;
+        case 2:
+            if (last_score == 1) level_up(level[2]);
+            if (last_score == 3) level_down(50, level[2]);
+            last_score = 2;
+            break;
+        case 3:
+            if (last_score == 2) level_up(level[3]);
+            if (last_score == 4) level_down(50, level[3]);
+            last_score = 3;
+            break;
+        case 4:
+            winning_check();
+            reset_timer.start();
+            winning();
+            break;
+    }
+}
+
+void check_for_game() {
+    while (digitalRead(LIMIT_SWITCH_1_PIN) == LOW && digitalRead(LIMIT_SWITCH_2_PIN) == LOW && coin_btn.read() == 1) {  //NO GAME
+        no_game();
+        if (coin_btn.toggled()) break;  // GAME ON
+    }
 }
 
 void setup() {
@@ -170,61 +214,10 @@ void setup() {
 }
 
 void loop() {
-    /*
-    If no one plays do the effect.
-    If someone starts a game stop the effect and show the score/level, and when the limit switches are on (game is over) show the no_game effect again.
-    */
-    /*
-    Serial.println(coin_btn.read());
-    if (digitalRead(LIMIT_SWITCH_1_PIN) == LOW && digitalRead(LIMIT_SWITCH_2_PIN) == LOW && coin_btn.read() == 1) {  // If the machine at home and there's no coin insert
-        no_game_timer.start();
-    }
-    if (coin_btn.toggled()) {  // Game starts
-        start_game();
-    }*/
-    if (plus_btn.pressed()) {
-        score++;
-        if (score >= 4) {
-            score = 4;
-        }
-    }
-    if (minus_btn.pressed()) {
-        score--;
-        if (score <= 0) {
-            score = 0;
-        }
-    }
+    // If no one plays do the effect.
+    // If someone starts a game stop the effect and show the score/level, and when the limit switches are on (game is over) show the no_game effect again.
 
-    switch (score) {
-        case 0:
-            if (last_score == 1) level_down(50, level[0]);
-            last_score = 0;
-            break;
-        case 1:
-            // if last_score was 0 make the blue effect because level is up
-            if (last_score == 0) level_up(level[1]);
-            // if last_score was 2 make the red effect because level is down
-            if (last_score == 2) level_down(50, level[1]);
-            last_score = 1;
-            break;
-        case 2:
-            if (last_score == 1) level_up(level[2]);
-            if (last_score == 3) level_down(50, level[2]);
-            last_score = 2;
-            break;
-        case 3:
-            if (last_score == 2) level_up(level[3]);
-            if (last_score == 4) level_down(50, level[3]);
-            last_score = 3;
-            break;
-        case 4:
-            winning_check();
-            reset_timer.start();
-            winning();
-            break;
-    }
-
-    // bool check = digitalRead(START_GAME_PIN);
-    // Serial.println(check);
+    // check_for_game();
+    update_score();
     TimerManager::instance().update();
 }

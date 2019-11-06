@@ -49,6 +49,7 @@ uint8_t last_score = 0;
 uint8_t level[] = {0, 28, 48, 60, 64};  //levels 0 to 4
 uint8_t start_point = 0;
 unsigned long last_update = 0;
+bool game_on = false;
 
 void delay_millis(uint32_t ms) {
     uint32_t start_ms = millis();
@@ -100,12 +101,14 @@ void winning() {  // Rainbow cycle along whole strip.
     }
 }
 
-void no_game() {  //explanation effect
+void no_game() {  //explanation effect  //TODO: make it slower without delay_millis();
+    //Change the internal square to green.
     for (uint8_t j = 0; j < 4; j++) {
         for (uint8_t i = level[j]; i < level[j + 1]; i++) {
             strip.setPixelColor(i, strip.Color(0, 0, 255));
             strip.show();
         }
+        delay_millis(250);
     }
 
     for (uint8_t j = 4; j > 0; j--) {
@@ -113,6 +116,7 @@ void no_game() {  //explanation effect
             strip.setPixelColor(i, strip.Color(0, 0, 0));
             strip.show();
         }
+        delay_millis(250);
     }
 }
 
@@ -176,8 +180,36 @@ void update_score() {
 
 void check_for_game() {
     while (digitalRead(LIMIT_SWITCH_1_PIN) == LOW && digitalRead(LIMIT_SWITCH_2_PIN) == LOW && coin_btn.read() == 1) {  //NO GAME
+        game_on = false;
         no_game();
-        if (coin_btn.toggled()) break;  // GAME ON
+        if (coin_btn.toggled()) break;
+    }
+    game_on = true;
+
+    if (game_on) {
+        switch (score) {
+            case 0:
+                if (last_score == 1) level_down(50, level[0]);
+                break;
+            case 1:
+                for (uint8_t i = level[0]; i < level[1]; i++) {
+                    strip.setPixelColor(i, strip.Color(0, 0, 255));
+                    strip.show();
+                }
+                break;
+            case 2:
+                for (uint8_t i = level[0]; i < level[2]; i++) {
+                    strip.setPixelColor(i, strip.Color(0, 0, 255));
+                    strip.show();
+                }
+                break;
+            case 3:
+                for (uint8_t i = level[0]; i < level[3]; i++) {
+                    strip.setPixelColor(i, strip.Color(0, 0, 255));
+                    strip.show();
+                }
+                break;
+        }
     }
 }
 
@@ -217,7 +249,7 @@ void loop() {
     // If no one plays do the effect.
     // If someone starts a game stop the effect and show the score/level, and when the limit switches are on (game is over) show the no_game effect again.
 
-    // check_for_game();
+    check_for_game();
     update_score();
     TimerManager::instance().update();
 }

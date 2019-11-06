@@ -101,12 +101,19 @@ void winning() {  // Rainbow cycle along whole strip.
     }
 }
 
-void no_game() {  //explanation effect  //TODO: make it slower without delay_millis();
-    //Change the internal square to green.
+void no_game() {  //explanation effect
     for (uint8_t j = 0; j < 4; j++) {
-        for (uint8_t i = level[j]; i < level[j + 1]; i++) {
-            strip.setPixelColor(i, strip.Color(0, 0, 255));
-            strip.show();
+        if (j <= 2) {
+            for (uint8_t i = level[j]; i < level[j + 1]; i++) {
+                strip.setPixelColor(i, strip.Color(0, 0, 255));
+                strip.show();
+            }
+        }
+        if (j == 3) {
+            for (uint8_t i = level[j]; i < level[j + 1]; i++) {
+                strip.setPixelColor(i, strip.Color(0, 255, 0));
+                strip.show();
+            }
         }
         delay_millis(250);
     }

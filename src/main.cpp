@@ -221,7 +221,7 @@ void check_for_game() {
     //FIXME: The current score level flickers when game starts and effect stops. Maybe it has to do with the functions order
     //FIXME: It shows fake winning once in a million time
 
-    if (coin_btn.read() == 0) {
+    if (coin_btn.pressed()) {
         game = true;
         strip.clear();
         strip.show();

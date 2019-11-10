@@ -135,8 +135,6 @@ void no_game_fx() {  //explanation effect
 }
 
 void reset_game() {
-    // strip.clear();
-    // strip.show();
     score = 0;
     last_score = 4;
     digitalWrite(WINNING_SENSOR_PIN, LOW);
@@ -224,9 +222,10 @@ void check_for_game() {
         increment = 1;
         strip.clear();
         strip.show();
+        digitalWrite(WINNING_SENSOR_PIN, LOW);
     }
 
-    if (!game && !fx_update.isRunning()) {  //TODO: add limit switches conditions just like down there V
+    if (!game && !fx_update.isRunning()) {
         Serial.println("NO GAME...");
         fx_update.start();
     }
@@ -290,6 +289,5 @@ void setup() {
 void loop() {
     check_for_game();
     update_score();
-    Serial.println(j);
     TimerManager::instance().update();
 }

@@ -33,7 +33,7 @@
 #define WINNING_FX_TIME (2000)  //NOTICE: make sure the number isn't too big. User might start a new game before the effect ends.
 #define NO_GAME_FX_TIME (500)
 #define WINNING_SENSOR_PIN (7)   // winning switch pin in the RPi (GPIO12)
-#define START_GAME_PIN (3)       // coin switch pin in the RPi (GPIO25) //TODO: play with this interrupt it will work!!!
+#define START_GAME_PIN (3)       // coin switch pin in the RPi (GPIO25)
 #define LIMIT_SWITCH_2_PIN (9)   // limit switch r/l pin in the RPi (GPIO20)
 #define LIMIT_SWITCH_1_PIN (10)  // limit switch f/b pin in the RPi (GPIO16)
 
@@ -53,10 +53,11 @@ uint8_t start_point = 0;
 unsigned long last_update = 0;
 unsigned long fx_last_update = 0;
 unsigned long fx_last_update2 = 0;
-bool game_on = false;
-bool coin = false;
+bool game = false;
+bool limits_state;               // = pressed = at home = 0
+bool prev_limits_state = false;  // = pressed = at home
 int8_t increment = 1;
-volatile int8_t i = 0;
+volatile int8_t i = 0;  //TODO: change i and j to normal names...
 volatile int8_t j = 0;
 
 void delay_millis(uint32_t ms) {
@@ -190,54 +191,10 @@ void update_score() {
             break;
     }
 }
-
-void check_for_game() {
-    // TODO: make the effect stop when coin is inserted and not when one starts moving the claw
-
-    /*
-    if (!digitalRead(LIMIT_SWITCH_1_PIN) && !digitalRead(LIMIT_SWITCH_2_PIN) && coin_btn.read() == 0) {
-        Serial.println("HALO");
-        // no_game_fx();
-    }
-    while (digitalRead(LIMIT_SWITCH_1_PIN) == LOW && digitalRead(LIMIT_SWITCH_2_PIN) == LOW && check_for_coin()) {  //NO GAME
-        game_on = false;
-        no_game_fx();
-        if (coin_btn.toggled()) break;
-    }
-    game_on = true;
-    */
-
-    if (game_on) {
-        switch (score) {
-            case 0:
-                if (last_score == 1) level_down(50, level[0]);
-                break;
-            case 1:
-                for (uint8_t i = level[0]; i < level[1]; i++) {
-                    strip.setPixelColor(i, strip.Color(0, 0, 255));
-                    strip.show();
-                }
-                break;
-            case 2:
-                for (uint8_t i = level[0]; i < level[2]; i++) {
-                    strip.setPixelColor(i, strip.Color(0, 0, 255));
-                    strip.show();
-                }
-                break;
-            case 3:
-                for (uint8_t i = level[0]; i < level[3]; i++) {
-                    strip.setPixelColor(i, strip.Color(0, 0, 255));
-                    strip.show();
-                }
-                break;
-        }
-    }
-}
-
 void start_game() {
     strip.clear();
     strip.show();
-    /*switch (score) {
+    switch (score) {
         case 0:
             if (last_score == 1) level_down(50, level[0]);
             break;
@@ -259,7 +216,36 @@ void start_game() {
                 strip.show();
             }
             break;
-    }*/
+    }
+}
+
+void check_for_game() {
+    //FIXME: The current score level flickers when game starts and effect stops. Maybe it has to do with the functions order
+    limits_state = digitalRead(LIMIT_SWITCH_1_PIN) && digitalRead(LIMIT_SWITCH_2_PIN);
+
+    if (coin_btn.read() == 0) {
+        game = true;
+        fx_update.stop();
+        strip.clear();
+        strip.show();
+        start_game();
+    }
+
+    if (!digitalRead(LIMIT_SWITCH_1_PIN) && !digitalRead(LIMIT_SWITCH_2_PIN) && prev_limits_state) {  // GAME OVER...
+        game = false;
+        prev_limits_state = false;
+    }
+
+    if (!game && !fx_update.isRunning()) {  //TODO: add limit switches conditions just like down there V
+        Serial.println("NO GAME...");
+        fx_update.start();
+    }
+
+    //NOTICE: the arduino doesn't know if a game starts if someone plays manually. For that I need to add a condition down here.
+    if (limits_state) {  // claw moved and GAME ON
+        Serial.println("GAME ON!!!");
+        prev_limits_state = true;
+    }
 }
 
 void setup() {
@@ -272,8 +258,6 @@ void setup() {
     pinMode(LIMIT_SWITCH_2_PIN, INPUT);  // When depressed = 1
     pinMode(WINNING_SENSOR_PIN, OUTPUT);
     digitalWrite(WINNING_SENSOR_PIN, LOW);
-
-    // attachInterrupt(digitalPinToInterrupt(START_GAME_PIN), start_game, FALLING);  // consider using FALLING instead
 
     plus_btn.begin();
     minus_btn.begin();
@@ -300,24 +284,7 @@ void setup() {
 }
 
 void loop() {
-    // If no one plays do the effect.
-    // If someone starts a game stop the effect and show the score/level, and when the limit switches are on (game is over) show the no_game_fx effect again.
-
-    // TODO: when game is over do fx_update.start();
-
-    if (!digitalRead(LIMIT_SWITCH_1_PIN) && !digitalRead(LIMIT_SWITCH_2_PIN)) {  // Check for readiness = if claw at home position
-        if (coin_btn.read() == 0) coin = true;
-        if (coin) {
-            fx_update.stop();
-            start_game();
-        }
-        if (!coin && !fx_update.isRunning()) {
-            fx_update.start();
-            Serial.println("NO GAME");
-        }
-    }
-
-    // check_for_game();
-    // update_score();
+    check_for_game();
+    update_score();
     TimerManager::instance().update();
 }

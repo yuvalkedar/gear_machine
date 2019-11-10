@@ -57,8 +57,8 @@ bool game = false;
 bool limits_state;               // = pressed = at home = 0
 bool prev_limits_state = false;  // = pressed = at home
 int8_t increment = 1;
-volatile int8_t i = 0;  //TODO: change i and j to normal names...
-volatile int8_t j = 0;
+int8_t i = 0;  //TODO: change i and j to normal names...
+int8_t j = 0;
 
 void delay_millis(uint32_t ms) {
     uint32_t start_ms = millis();
@@ -220,6 +220,8 @@ void start_game() {
 void check_for_game() {
     if (coin_btn.pressed()) {
         game = true;
+        j = 0;
+        increment = 1;
         strip.clear();
         strip.show();
     }
@@ -245,7 +247,6 @@ void check_for_game() {
     if (!digitalRead(LIMIT_SWITCH_1_PIN) && !digitalRead(LIMIT_SWITCH_2_PIN) && prev_limits_state) {  // GAME OVER...
         strip.clear();
         strip.show();
-        j = 1;
         game = false;
         prev_limits_state = false;
     }
@@ -289,5 +290,6 @@ void setup() {
 void loop() {
     check_for_game();
     update_score();
+    Serial.println(j);
     TimerManager::instance().update();
 }

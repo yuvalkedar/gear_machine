@@ -221,7 +221,11 @@ void start_game() {
 
 void check_for_game() {
     //FIXME: The current score level flickers when game starts and effect stops. Maybe it has to do with the functions order
-    limits_state = digitalRead(LIMIT_SWITCH_1_PIN) && digitalRead(LIMIT_SWITCH_2_PIN);
+
+    if (!game && !fx_update.isRunning()) {  //TODO: add limit switches conditions just like down there V
+        Serial.println("NO GAME...");
+        fx_update.start();
+    }
 
     if (coin_btn.read() == 0) {
         game = true;
@@ -231,20 +235,19 @@ void check_for_game() {
         start_game();
     }
 
-    if (!digitalRead(LIMIT_SWITCH_1_PIN) && !digitalRead(LIMIT_SWITCH_2_PIN) && prev_limits_state) {  // GAME OVER...
-        game = false;
-        prev_limits_state = false;
-    }
-
-    if (!game && !fx_update.isRunning()) {  //TODO: add limit switches conditions just like down there V
-        Serial.println("NO GAME...");
-        fx_update.start();
-    }
+    limits_state = digitalRead(LIMIT_SWITCH_1_PIN) && digitalRead(LIMIT_SWITCH_2_PIN);
 
     //NOTICE: the arduino doesn't know if a game starts if someone plays manually. For that I need to add a condition down here.
     if (limits_state) {  // claw moved and GAME ON
         Serial.println("GAME ON!!!");
         prev_limits_state = true;
+    }
+
+    if (!digitalRead(LIMIT_SWITCH_1_PIN) && !digitalRead(LIMIT_SWITCH_2_PIN) && prev_limits_state) {  // GAME OVER...
+        strip.clear();
+        strip.show();
+        game = false;
+        prev_limits_state = false;
     }
 }
 

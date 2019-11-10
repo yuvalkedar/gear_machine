@@ -135,8 +135,8 @@ void no_game_fx() {  //explanation effect
 }
 
 void reset_game() {
-    strip.clear();
-    strip.show();
+    // strip.clear();
+    // strip.show();
     score = 0;
     last_score = 4;
     digitalWrite(WINNING_SENSOR_PIN, LOW);
@@ -192,8 +192,6 @@ void update_score() {
     }
 }
 void start_game() {
-    strip.clear();
-    strip.show();
     switch (score) {
         case 0:
             if (last_score == 1) level_down(50, level[0]);
@@ -221,17 +219,21 @@ void start_game() {
 
 void check_for_game() {
     //FIXME: The current score level flickers when game starts and effect stops. Maybe it has to do with the functions order
+    //FIXME: It shows fake winning once in a million time
+
+    if (coin_btn.read() == 0) {
+        game = true;
+        strip.clear();
+        strip.show();
+    }
 
     if (!game && !fx_update.isRunning()) {  //TODO: add limit switches conditions just like down there V
         Serial.println("NO GAME...");
         fx_update.start();
     }
 
-    if (coin_btn.read() == 0) {
-        game = true;
+    if (game) {
         fx_update.stop();
-        strip.clear();
-        strip.show();
         start_game();
     }
 
@@ -239,7 +241,7 @@ void check_for_game() {
 
     //NOTICE: the arduino doesn't know if a game starts if someone plays manually. For that I need to add a condition down here.
     if (limits_state) {  // claw moved and GAME ON
-        Serial.println("GAME ON!!!");
+        // Serial.println("GAME ON!!!");
         prev_limits_state = true;
     }
 

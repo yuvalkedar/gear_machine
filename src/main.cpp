@@ -166,21 +166,25 @@ void update_score() {
         case 0:
             if (last_score == 1) level_down(50, level[0]);
             last_score = 0;
+            digitalWrite(WINNING_SENSOR_PIN, LOW);
             break;
         case 1:
             if (last_score == 0) level_up(level[1]);        // if last_score was 0 make the blue effect because level is up
             if (last_score == 2) level_down(50, level[1]);  // if last_score was 2 make the red effect because level is down
             last_score = 1;
+            digitalWrite(WINNING_SENSOR_PIN, LOW);
             break;
         case 2:
             if (last_score == 1) level_up(level[2]);
             if (last_score == 3) level_down(50, level[2]);
             last_score = 2;
+            digitalWrite(WINNING_SENSOR_PIN, LOW);
             break;
         case 3:
             if (last_score == 2) level_up(level[3]);
             if (last_score == 4) level_down(50, level[3]);
             last_score = 3;
+            digitalWrite(WINNING_SENSOR_PIN, LOW);
             break;
         case 4:
             winning_check();

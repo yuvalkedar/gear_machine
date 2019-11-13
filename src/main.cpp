@@ -1,5 +1,3 @@
-// NEW BRANCH CHECK
-
 /*
 	Author: Yuval Kedar - KD Technology
 	Instagram: https://www.instagram.com/kd_technology/
@@ -33,34 +31,20 @@
 #define NUM_LEDS (64)
 #define LED_BRIGHTNESS (200)
 #define WINNING_FX_TIME (2000)  //NOTICE: make sure the number isn't too big. User might start a new game before the effect ends.
-#define NO_GAME_FX_TIME (500)
-#define WINNING_SENSOR_PIN (7)   // winning switch pin in the RPi (GPIO12)
-#define START_GAME_PIN (3)       // coin switch pin in the RPi (GPIO25)
-#define LIMIT_SWITCH_2_PIN (9)   // limit switch r/l pin in the RPi (GPIO20)
-#define LIMIT_SWITCH_1_PIN (10)  // limit switch f/b pin in the RPi (GPIO16)
+#define WINNING_SENSOR_PIN (7)  // winning switch pin in the RPi (GPIO12)
 
 Adafruit_NeoPixel strip(NUM_LEDS, LED_DATA_PIN, NEO_GRB + NEO_KHZ800);
 
 Button plus_btn(BLUE_BTN_PIN);
 Button minus_btn(RED_BTN_PIN);
-Button coin_btn(START_GAME_PIN);
 
 Timer reset_timer;
-Timer fx_update;
 
 int8_t score = 0;
 uint8_t last_score = 0;
 uint8_t level[] = {0, 28, 48, 60, 64};  //levels 0 to 4
 uint8_t start_point = 0;
 unsigned long last_update = 0;
-unsigned long fx_last_update = 0;
-unsigned long fx_last_update2 = 0;
-bool game = false;
-bool limits_state;               // = pressed = at home = 0
-bool prev_limits_state = false;  // = pressed = at home
-int8_t increment = 1;
-int8_t i = 0;  //TODO: change i and j to normal names...
-int8_t j = 0;
 
 void delay_millis(uint32_t ms) {
     uint32_t start_ms = millis();
@@ -112,31 +96,9 @@ void winning() {  // Rainbow cycle along whole strip.
     }
 }
 
-void no_game_fx() {  //explanation effect
-    if (increment == -1) {
-        for (i = level[j] - 1; i >= level[j - 1]; i--) {
-            strip.setPixelColor(i, strip.Color(0, 0, 0));
-            strip.show();
-        }
-    } else {
-        if (j <= 2) {
-            for (i = level[j]; i < level[j + 1]; i++) {
-                strip.setPixelColor(i, strip.Color(0, 0, 255));
-                strip.show();
-            }
-        }
-        if (j == 3) {
-            for (i = level[j]; i < level[j + 1]; i++) {
-                strip.setPixelColor(i, strip.Color(255, 0, 255));
-                strip.show();
-            }
-        }
-    }
-    j += increment;
-    if (j <= 0 || j >= 4) increment = -increment;
-}
-
 void reset_game() {
+    strip.clear();
+    strip.show();
     score = 0;
     last_score = 4;
     digitalWrite(WINNING_SENSOR_PIN, LOW);
@@ -195,88 +157,20 @@ void update_score() {
             break;
     }
 }
-void start_game() {
-    switch (score) {
-        case 0:
-            if (last_score == 1) level_down(50, level[0]);
-            break;
-        case 1:
-            for (uint8_t i = level[0]; i < level[1]; i++) {
-                strip.setPixelColor(i, strip.Color(0, 0, 255));
-                strip.show();
-            }
-            break;
-        case 2:
-            for (uint8_t i = level[0]; i < level[2]; i++) {
-                strip.setPixelColor(i, strip.Color(0, 0, 255));
-                strip.show();
-            }
-            break;
-        case 3:
-            for (uint8_t i = level[0]; i < level[3]; i++) {
-                strip.setPixelColor(i, strip.Color(0, 0, 255));
-                strip.show();
-            }
-            break;
-    }
-}
-
-void check_for_game() {
-    if (coin_btn.pressed()) {
-        game = true;
-        j = 0;
-        increment = 1;
-        strip.clear();
-        strip.show();
-        digitalWrite(WINNING_SENSOR_PIN, LOW);
-    }
-
-    if (!game && !fx_update.isRunning()) {
-        Serial.println("NO GAME...");
-        fx_update.start();
-    }
-
-    if (game) {
-        fx_update.stop();
-        start_game();
-    }
-
-    limits_state = digitalRead(LIMIT_SWITCH_1_PIN) && digitalRead(LIMIT_SWITCH_2_PIN);
-
-    //NOTICE: the arduino doesn't know a game starts if someone plays manually. For that I need to add a condition down here.
-    if (limits_state) {  // claw moved and GAME ON
-        // Serial.println("GAME ON!!!");
-        prev_limits_state = true;
-    }
-
-    if (!digitalRead(LIMIT_SWITCH_1_PIN) && !digitalRead(LIMIT_SWITCH_2_PIN) && prev_limits_state) {  // GAME OVER...
-        strip.clear();
-        strip.show();
-        game = false;
-        prev_limits_state = false;
-    }
-}
 
 void setup() {
     Serial.begin(SERIAL_BAUDRATE);
     pinMode(LED_DATA_PIN, OUTPUT);
     pinMode(BLUE_BTN_PIN, INPUT);
     pinMode(RED_BTN_PIN, INPUT);
-    pinMode(START_GAME_PIN, INPUT);
-    pinMode(LIMIT_SWITCH_1_PIN, INPUT);  // When pressed = 0
-    pinMode(LIMIT_SWITCH_2_PIN, INPUT);  // When depressed = 1
     pinMode(WINNING_SENSOR_PIN, OUTPUT);
     digitalWrite(WINNING_SENSOR_PIN, LOW);
 
     plus_btn.begin();
     minus_btn.begin();
-    coin_btn.begin();
 
     reset_timer.setCallback(reset_game);
     reset_timer.setTimeout(WINNING_FX_TIME);
-
-    fx_update.setCallback(no_game_fx);
-    fx_update.setInterval(NO_GAME_FX_TIME);
 
     strip.begin();
     strip.show();  // Turn OFF all pixels
@@ -293,7 +187,6 @@ void setup() {
 }
 
 void loop() {
-    check_for_game();
     update_score();
     TimerManager::instance().update();
 }

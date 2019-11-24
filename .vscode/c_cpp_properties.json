@@ -8,8 +8,8 @@
             "includePath": [
                 "c:/Develop/Clawee/gear_machine/include",
                 "c:/Develop/Clawee/gear_machine/src",
-                "c:/Develop/Clawee/gear_machine/.pio/libdeps/uno/Adafruit NeoPixel_ID28",
                 "c:/Develop/Clawee/gear_machine/lib/Timer",
+                "c:/Develop/Clawee/gear_machine/.pio/libdeps/uno/Adafruit NeoPixel_ID28",
                 "C:/Users/yuval/.platformio/lib/Button_ID919",
                 "C:/Users/yuval/.platformio/packages/framework-arduinoavr/cores/arduino",
                 "C:/Users/yuval/.platformio/packages/framework-arduinoavr/variants/standard",
@@ -33,8 +33,8 @@
                 "path": [
                     "c:/Develop/Clawee/gear_machine/include",
                     "c:/Develop/Clawee/gear_machine/src",
-                    "c:/Develop/Clawee/gear_machine/.pio/libdeps/uno/Adafruit NeoPixel_ID28",
                     "c:/Develop/Clawee/gear_machine/lib/Timer",
+                    "c:/Develop/Clawee/gear_machine/.pio/libdeps/uno/Adafruit NeoPixel_ID28",
                     "C:/Users/yuval/.platformio/lib/Button_ID919",
                     "C:/Users/yuval/.platformio/packages/framework-arduinoavr/cores/arduino",
                     "C:/Users/yuval/.platformio/packages/framework-arduinoavr/variants/standard",

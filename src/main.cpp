@@ -26,8 +26,8 @@
 
 #define SERIAL_BAUDRATE (115200)
 #define LED_DATA_PIN (6)
-#define BLUE_BTN_PIN (5)
-#define RED_BTN_PIN (11)
+#define BLUE_BTN_PIN (9)
+#define RED_BTN_PIN (8)
 #define NUM_LEDS (64)
 #define LED_BRIGHTNESS (200)
 #define WINNING_FX_TIME (2000)  //NOTICE: make sure the number isn't too big. User might start a new game before the effect ends.
@@ -115,12 +115,14 @@ void winning_check() {
 void update_score() {
     if (plus_btn.pressed()) {
         score++;
+        // Serial.println("plus");
         if (score >= 4) {
             score = 4;
         }
     }
     if (minus_btn.pressed()) {
         score--;
+        // Serial.println("minus");
         if (score <= 0) {
             score = 0;
         }

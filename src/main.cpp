@@ -27,7 +27,7 @@
 #define SERIAL_BAUDRATE (115200)
 #define LED_DATA_PIN (6)
 #define BLUE_BTN_PIN (9)
-#define RED_BTN_PIN (8)
+#define RED_BTN_PIN (10)
 #define NUM_LEDS (64)
 #define LED_BRIGHTNESS (200)
 #define WINNING_FX_TIME (2000)  //NOTICE: make sure the number isn't too big. User might start a new game before the effect ends.
